@@ -27,11 +27,13 @@ export default {
     let event: { type: string; created_at: string; data: Record<string, any> };
 
     try {
-      event = new Webhook(env.RESEND_WEBHOOK_SECRET).verify(payload, {
+      // svix >= 2.8 verify() only throws on a bad signature; it no longer returns the parsed payload
+      new Webhook(env.RESEND_WEBHOOK_SECRET).verify(payload, {
         "svix-id": req.headers.get("svix-id") ?? "",
         "svix-timestamp": req.headers.get("svix-timestamp") ?? "",
         "svix-signature": req.headers.get("svix-signature") ?? "",
-      }) as typeof event;
+      });
+      event = JSON.parse(payload);
     } catch {
       return new Response("Invalid signature", { status: 401 });
     }
