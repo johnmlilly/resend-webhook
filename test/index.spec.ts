@@ -1,4 +1,4 @@
-import { SELF } from "cloudflare:test";
+import { exports } from "cloudflare:workers";
 import { Webhook } from "svix";
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from "vitest";
 import worker from "../src/index";
@@ -38,7 +38,7 @@ function emailEvent(type: string, subject = "Welcome") {
 
 describe("routing", () => {
 	it("returns 404 for non-webhook paths", async () => {
-		const response = await SELF.fetch("https://example.com/");
+		const response = await exports.default.fetch("https://example.com/");
 		expect(response.status).toBe(404);
 	});
 
