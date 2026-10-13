@@ -17,7 +17,7 @@ const ALERT_EVENTS = new Set([
 const ALERT_PREFIX = "[Resend alert]";
 
 export default {
-  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
     if (req.method !== "POST" || url.pathname !== "/webhooks/resend") {
       return new Response("Not found", { status: 404 });
@@ -41,7 +41,13 @@ export default {
     // Skip our own alert emails to avoid loops
     const subject: string = event.data?.subject ?? "";
     if (ALERT_EVENTS.has(event.type) && !subject.startsWith(ALERT_PREFIX)) {
-      ctx.waitUntil(sendAlert(env, event));
+      // Await instead of waitUntil so a failed send returns 500 and Resend retries the webhook
+      try {
+        await sendAlert(env, event);
+      } catch (err) {
+        console.error("Alert send failed", err);
+        return new Response("Alert send failed", { status: 500 });
+      }
     }
 
     return new Response("ok");
@@ -66,5 +72,5 @@ async function sendAlert(
       text: JSON.stringify(event, null, 2),
     }),
   });
-  if (!res.ok) console.error("Alert send failed", res.status, await res.text());
+  if (!res.ok) throw new Error(`Resend API ${res.status}: ${await res.text()}`);
 }
