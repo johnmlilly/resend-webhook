@@ -47,8 +47,6 @@ curl -X POST https://api.resend.com/emails \
   -d '{"from":"alerts@yourdomain.com","to":"bounced@resend.dev","subject":"bounce test","text":"test"}'
 ```
 
-You should get an alert titled `[Resend alert] email.bounced → bounced@resend.dev`. Sending from Gmail to that address won't work; it has to go through Resend.
-
 Watch requests live with `npx wrangler tail`.
 
 ## Development
